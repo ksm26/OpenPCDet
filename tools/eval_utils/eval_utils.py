@@ -22,7 +22,7 @@ def statistics_info(cfg, ret_dict, metric, disp_dict):
 def eval_one_epoch(cfg, args, model, dataloader, epoch_id, logger, dist_test=False, result_dir=None):
     result_dir.mkdir(parents=True, exist_ok=True)
 
-    final_output_dir = result_dir / 'final_result' / 'data'
+    final_output_dir = result_dir / 'final_result'
     if args.save_to_file:
         final_output_dir.mkdir(parents=True, exist_ok=True)
 

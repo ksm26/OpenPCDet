@@ -162,20 +162,20 @@ def main():
         assert args.batch_size % total_gpus == 0, 'Batch size should match the number of gpus'
         args.batch_size = args.batch_size // total_gpus
 
-    output_dir = cfg.ROOT_DIR / 'output' / cfg.EXP_GROUP_PATH / cfg.TAG / args.extra_tag
+    output_dir = cfg.ROOT_DIR / 'output' / cfg.EXP_GROUP_PATH / cfg.TAG
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    eval_output_dir = output_dir / 'eval'
+    eval_output_dir = output_dir
 
     if not args.eval_all:
         num_list = re.findall(r'\d+', args.ckpt) if args.ckpt is not None else []
         epoch_id = num_list[-1] if num_list.__len__() > 0 else 'no_number'
-        eval_output_dir = eval_output_dir / ('epoch_%s' % epoch_id) / cfg.DATA_CONFIG.DATA_SPLIT['test']
+        eval_output_dir = eval_output_dir / ('epoch_%s' % epoch_id) # / cfg.DATA_CONFIG.DATA_SPLIT['test']
     else:
         eval_output_dir = eval_output_dir / 'eval_all_default'
 
-    if args.eval_tag is not None:
-        eval_output_dir = eval_output_dir / args.eval_tag
+    # if args.eval_tag is not None:
+    #     eval_output_dir = eval_output_dir / args.eval_tag
 
     eval_output_dir.mkdir(parents=True, exist_ok=True)
     log_file = eval_output_dir / ('log_eval_%s.txt' % datetime.datetime.now().strftime('%Y%m%d-%H%M%S'))

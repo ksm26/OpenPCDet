@@ -166,7 +166,7 @@ class NuScenesDataset(DatasetTemplate):
         return data_dict
 
     def data_to_txt(self, output_path, nusc_annos):
-        detect_path = output_path / 'detections'
+        detect_path = output_path / 'train_detections'
         detect_path.mkdir(exist_ok=True, parents=True)
 
         result_dict = nusc_annos['results']
