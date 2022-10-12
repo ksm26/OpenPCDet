@@ -5,10 +5,22 @@ from pathlib import Path
 import numpy as np
 from tqdm import tqdm
 
-from ...ops.roiaware_pool3d import roiaware_pool3d_utils
-from ...utils import common_utils
-from ..dataset import DatasetTemplate
+# from ...ops.roiaware_pool3d import roiaware_pool3d_utils
+# from ...utils import common_utils
+# from ..dataset import DatasetTemplate
 
+from pcdet.ops.roiaware_pool3d import roiaware_pool3d_utils
+from pcdet.utils import common_utils
+from pcdet.datasets.dataset import DatasetTemplate
+
+try:
+    import open3d
+    from visual_utils import open3d_vis_utils as V
+    OPEN3D_FLAG = True
+except:
+    import mayavi.mlab as mlab
+    from visual_utils import visualize_utils as V
+    OPEN3D_FLAG = False
 
 class NuScenesDataset(DatasetTemplate):
     def __init__(self, dataset_cfg, class_names, training=True, root_path=None, logger=None):
@@ -79,7 +91,9 @@ class NuScenesDataset(DatasetTemplate):
             return points[mask]
 
         lidar_path = self.root_path / sweep_info['lidar_path']
+        # TODO check if this pointcloud without transformation shows correct ground truth detection in visualizer
         points_sweep = np.fromfile(str(lidar_path), dtype=np.float32, count=-1).reshape([-1, 5])[:, :4]
+        
         points_sweep = remove_ego_points(points_sweep).T
         if sweep_info['transform_matrix'] is not None:
             num_points = points_sweep.shape[1]
@@ -97,6 +111,7 @@ class NuScenesDataset(DatasetTemplate):
         sweep_points_list = [points]
         sweep_times_list = [np.zeros((points.shape[0], 1))]
 
+        # Concatenate the LiDAR point and past time sweeps 
         for k in np.random.choice(len(info['sweeps']), max_sweeps - 1, replace=False):
             points_sweep, times_sweep = self.get_sweep(info['sweeps'][k])
             sweep_points_list.append(points_sweep)
@@ -140,7 +155,7 @@ class NuScenesDataset(DatasetTemplate):
 
         data_dict = self.prepare_data(data_dict=input_dict)
 
-        if self.dataset_cfg.get('SET_NAN_VELOCITY_TO_ZEROS', False) and 'gt_boxes' in info:
+        if self.dataset_cfg.get('SET_NAN_VELOCITY_TO_ZEROS', False):
             gt_boxes = data_dict['gt_boxes']
             gt_boxes[np.isnan(gt_boxes)] = 0
             data_dict['gt_boxes'] = gt_boxes
@@ -149,6 +164,27 @@ class NuScenesDataset(DatasetTemplate):
             data_dict['gt_boxes'] = data_dict['gt_boxes'][:, [0, 1, 2, 3, 4, 5, 6, -1]]
 
         return data_dict
+
+    def data_to_txt(self, output_path, nusc_annos):
+        detect_path = output_path / 'detections'
+        detect_path.mkdir(exist_ok=True, parents=True)
+
+        result_dict = nusc_annos['results']
+
+        for i in result_dict.keys():
+            doc_path = str(detect_path / f'{i}.txt')
+
+            datalist = []
+            for j in range(len(result_dict[i])):
+                single_sample = result_dict[i][j]['translation'] + result_dict[i][j]['size'] + result_dict[i][j]['rotation']
+                single_sample.append(result_dict[i][j]['detection_score'])
+                single_sample = [str(round(num,4)) for num in single_sample]
+                single_sample.insert(0,result_dict[i][j]['detection_name'])
+
+                datalist.append(single_sample)
+
+            with open(doc_path, 'w') as f:
+                f.write('\n'.join([' '.join(i) for i in datalist]))
 
     def evaluation(self, det_annos, class_names, **kwargs):
         import json
@@ -169,6 +205,8 @@ class NuScenesDataset(DatasetTemplate):
         res_path = str(output_path / 'results_nusc.json')
         with open(res_path, 'w') as f:
             json.dump(nusc_annos, f)
+
+        self.data_to_txt(output_path, nusc_annos)                  
 
         self.logger.info(f'The predictions of NuScenes have been saved to {res_path}')
 
@@ -254,7 +292,8 @@ class NuScenesDataset(DatasetTemplate):
 def create_nuscenes_info(version, data_path, save_path, max_sweeps=10):
     from nuscenes.nuscenes import NuScenes
     from nuscenes.utils import splits
-    from . import nuscenes_utils
+    from pcdet.datasets.nuscenes import nuscenes_utils
+
     data_path = data_path / version
     save_path = save_path / version
 
@@ -305,9 +344,9 @@ if __name__ == '__main__':
     from easydict import EasyDict
 
     parser = argparse.ArgumentParser(description='arg parser')
-    parser.add_argument('--cfg_file', type=str, default=None, help='specify the config of dataset')
+    parser.add_argument('--cfg_file', type=str, default='/home/khushdeep/Desktop/OpenPCDet/tools/cfgs/dataset_configs/nuscenes_dataset.yaml', help='specify the config of dataset')
     parser.add_argument('--func', type=str, default='create_nuscenes_infos', help='')
-    parser.add_argument('--version', type=str, default='v1.0-trainval', help='')
+    parser.add_argument('--version', type=str, default='v1.0-mini', help='')
     args = parser.parse_args()
 
     if args.func == 'create_nuscenes_infos':

@@ -295,6 +295,10 @@ def fill_trainval_infos(data_path, nusc, train_scenes, val_scenes, test=False, m
         sample_data_token = sample['data'][chan]
         curr_sd_rec = nusc.get('sample_data', sample_data_token)
         sweeps = []
+
+        # nuScenes allows aggregation of sweeps, 
+        # uses transformation matrix to bring all point clouds to current LiDAR referencce frame
+        
         while len(sweeps) < max_sweeps - 1:
             if curr_sd_rec['prev'] == '':
                 if len(sweeps) == 0:

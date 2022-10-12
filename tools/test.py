@@ -1,4 +1,4 @@
-import _init_path
+# import _init_path
 import argparse
 import datetime
 import glob
@@ -11,7 +11,7 @@ import numpy as np
 import torch
 from tensorboardX import SummaryWriter
 
-from eval_utils import eval_utils
+from tools.eval_utils import eval_utils
 from pcdet.config import cfg, cfg_from_list, cfg_from_yaml_file, log_config_to_file
 from pcdet.datasets import build_dataloader
 from pcdet.models import build_network
@@ -20,12 +20,18 @@ from pcdet.utils import common_utils
 
 def parse_config():
     parser = argparse.ArgumentParser(description='arg parser')
-    parser.add_argument('--cfg_file', type=str, default=None, help='specify the config for training')
-
-    parser.add_argument('--batch_size', type=int, default=None, required=False, help='batch size for training')
+    # parser.add_argument('--cfg_file', type=str, default=None, help='specify the config for training')
+    parser.add_argument('--cfg_file', type=str, default='cfgs/nuscenes_models/cbgs_voxel0075_res3d_centerpoint.yaml', help='specify the config for training')
+    
+    # parser.add_argument('--batch_size', type=int, default=None, required=False, help='batch size for training')
+    parser.add_argument('--batch_size', type=int, default=1, required=False, help='batch size for training')
     parser.add_argument('--workers', type=int, default=4, help='number of workers for dataloader')
     parser.add_argument('--extra_tag', type=str, default='default', help='extra tag for this experiment')
-    parser.add_argument('--ckpt', type=str, default=None, help='checkpoint to start from')
+    
+    # parser.add_argument('--ckpt', type=str, default=None, help='checkpoint to start from')
+    # parser.add_argument('--ckpt', type=str, default='ckpts/nuscenes/pp_multihead_nds5823_updated.pth', help='checkpoint to start from')
+    parser.add_argument('--ckpt', type=str, default='ckpts/nuscenes/cbgs_voxel0075_centerpoint_nds_6648.pth', help='checkpoint to start from')
+
     parser.add_argument('--pretrained_model', type=str, default=None, help='pretrained_model')
     parser.add_argument('--launcher', choices=['none', 'pytorch', 'slurm'], default='none')
     parser.add_argument('--tcp_port', type=int, default=18888, help='tcp port for distrbuted training')
@@ -38,7 +44,7 @@ def parse_config():
     parser.add_argument('--eval_tag', type=str, default='default', help='eval tag for this experiment')
     parser.add_argument('--eval_all', action='store_true', default=False, help='whether to evaluate all checkpoints')
     parser.add_argument('--ckpt_dir', type=str, default=None, help='specify a ckpt directory to be evaluated if needed')
-    parser.add_argument('--save_to_file', action='store_true', default=False, help='')
+    parser.add_argument('--save_to_file', action='store_true', default=True, help='')
     parser.add_argument('--infer_time', action='store_true', default=False, help='calculate inference latency')
 
     args = parser.parse_args()

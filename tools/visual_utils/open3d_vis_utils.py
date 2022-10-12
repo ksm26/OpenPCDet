@@ -13,6 +13,13 @@ box_colormap = [
     [0, 1, 0],
     [0, 1, 1],
     [1, 1, 0],
+    [1, 1, 1],
+    [0, 1, 0],
+    [0, 1, 1],
+    [1, 1, 0],
+    [1, 1, 1],
+    [0, 1, 0],
+    [0, 1, 1]
 ]
 
 
@@ -69,7 +76,9 @@ def draw_scenes(points, gt_boxes=None, ref_boxes=None, ref_labels=None, ref_scor
     if ref_boxes is not None:
         vis = draw_box(vis, ref_boxes, (0, 1, 0), ref_labels, ref_scores)
 
+
     vis.run()
+    # vis.capture_screen_image("/home/khushdeep/Desktop/abc.jpg")
     vis.destroy_window()
 
 
@@ -106,8 +115,12 @@ def draw_box(vis, gt_boxes, color=(0, 1, 0), ref_labels=None, score=None):
         if ref_labels is None:
             line_set.paint_uniform_color(color)
         else:
+            # the if condition below is for nuscenes
+            # if ref_labels[i]>3 :
+            #     continue
             line_set.paint_uniform_color(box_colormap[ref_labels[i]])
 
+        # if float(score[i]) > 0.5 :
         vis.add_geometry(line_set)
 
         # if score is not None:
