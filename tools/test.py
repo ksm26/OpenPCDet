@@ -17,7 +17,6 @@ from pcdet.datasets import build_dataloader
 from pcdet.models import build_network
 from pcdet.utils import common_utils
 
-
 def parse_config():
     parser = argparse.ArgumentParser(description='arg parser')
     # parser.add_argument('--cfg_file', type=str, default=None, help='specify the config for training')

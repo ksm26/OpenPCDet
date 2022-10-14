@@ -5,22 +5,9 @@ from pathlib import Path
 import numpy as np
 from tqdm import tqdm
 
-# from ...ops.roiaware_pool3d import roiaware_pool3d_utils
-# from ...utils import common_utils
-# from ..dataset import DatasetTemplate
-
 from pcdet.ops.roiaware_pool3d import roiaware_pool3d_utils
 from pcdet.utils import common_utils
 from pcdet.datasets.dataset import DatasetTemplate
-
-try:
-    import open3d
-    from visual_utils import open3d_vis_utils as V
-    OPEN3D_FLAG = True
-except:
-    import mayavi.mlab as mlab
-    from visual_utils import visualize_utils as V
-    OPEN3D_FLAG = False
 
 class NuScenesDataset(DatasetTemplate):
     def __init__(self, dataset_cfg, class_names, training=True, root_path=None, logger=None):

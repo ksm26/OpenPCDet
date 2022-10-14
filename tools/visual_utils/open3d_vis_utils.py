@@ -3,10 +3,10 @@ Open3d visualization tool box
 Written by Jihan YANG
 All rights preserved from 2021 - present.
 """
-import open3d
-import torch
 import matplotlib
 import numpy as np
+import open3d
+import torch
 
 box_colormap = [
     [1, 1, 1],
@@ -75,7 +75,6 @@ def draw_scenes(points, gt_boxes=None, ref_boxes=None, ref_labels=None, ref_scor
 
     if ref_boxes is not None:
         vis = draw_box(vis, ref_boxes, (0, 1, 0), ref_labels, ref_scores)
-
 
     vis.run()
     # vis.capture_screen_image("/home/khushdeep/Desktop/abc.jpg")

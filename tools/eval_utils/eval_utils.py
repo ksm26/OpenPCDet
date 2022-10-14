@@ -8,6 +8,14 @@ import tqdm
 from pcdet.models import load_data_to_gpu
 from pcdet.utils import common_utils
 
+# try:
+import open3d
+from tools.visual_utils import open3d_vis_utils as V
+OPEN3D_FLAG = True
+# except:
+#     import mayavi.mlab as mlab
+#     from .visual_utils import visualize_utils as V
+#     OPEN3D_FLAG = False
 
 def statistics_info(cfg, ret_dict, metric, disp_dict):
     for cur_thresh in cfg.MODEL.POST_PROCESSING.RECALL_THRESH_LIST:
@@ -63,6 +71,12 @@ def eval_one_epoch(cfg, args, model, dataloader, epoch_id, logger, dist_test=Fal
 
         with torch.no_grad():
             pred_dicts, ret_dict = model(batch_dict)
+
+            V.draw_scenes(
+                points=batch_dict['points'][:, 1:], gt_boxes=batch_dict['gt_boxes'].squeeze(dim=0),
+                ref_boxes=pred_dicts[0]['pred_boxes'], ref_scores=pred_dicts[0]['pred_scores'], 
+                ref_labels=pred_dicts[0]['pred_labels']
+            )
 
         disp_dict = {}
 
