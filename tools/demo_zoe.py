@@ -19,6 +19,8 @@ from pcdet.datasets import DatasetTemplate
 from pcdet.models import build_network, load_data_to_gpu
 from pcdet.utils import common_utils
 import open3d as o3d
+import re
+import os
 
 
 class DemoDataset(DatasetTemplate):
@@ -39,7 +41,8 @@ class DemoDataset(DatasetTemplate):
         data_file_list = glob.glob(str(root_path / f'*.pcd')) if self.root_path.is_dir() else [self.root_path]
 
         data_file_list.sort()
-        self.sample_file_list = data_file_list
+        data_file_list.sort(key=lambda f: int(re.sub('\D', '', f)))
+        self.sample_file_list = data_file_list[200:]
 
     def __len__(self):
         return len(self.sample_file_list)
@@ -56,6 +59,7 @@ class DemoDataset(DatasetTemplate):
             pcd = o3d.t.io.read_point_cloud(str(self.sample_file_list[index]))
             # points = pcd.point["positions"].numpy()
             points = np.hstack((pcd.point["positions"].numpy(), pcd.point["intensity"].numpy()/255))
+            points[:, [1, 0]] = points[:, [0, 1]]
             # points = np.fromfile(self.sample_file_list[index], dtype=np.float32).reshape(-1, 5)
         else:
             raise NotImplementedError
@@ -109,6 +113,7 @@ def main():
     model.load_params_from_file(filename=args.ckpt, logger=logger, to_cpu=True)
     model.cuda()
     model.eval()
+    count = 1
     with torch.no_grad():
         for idx, data_dict in enumerate(demo_dataset):
             logger.info(f'Visualized sample index: \t{idx + 1}')
@@ -118,7 +123,7 @@ def main():
 
             index_vehicle = torch.where(pred_dicts[0]['pred_labels'] == 1)[0].cpu().tolist()
             V.draw_scenes(
-                points=data_dict['points'][:, 1:], ref_boxes=pred_dicts[0]['pred_boxes'][index_vehicle, :],
+                points=data_dict['points'][:, 1:],filename = str(count), ref_boxes=pred_dicts[0]['pred_boxes'][index_vehicle, :],
                 ref_scores=pred_dicts[0]['pred_scores'][index_vehicle],
                 ref_labels=pred_dicts[0]['pred_labels'][index_vehicle]
             )
@@ -126,6 +131,7 @@ def main():
             #     points=data_dict['points'][:, 1:], ref_boxes=pred_dicts[0]['pred_boxes'],
             #     ref_scores=pred_dicts[0]['pred_scores'], ref_labels=pred_dicts[0]['pred_labels']
             # )
+            count+=1
 
             if not OPEN3D_FLAG:
                 mlab.show(stop=True)
