@@ -18,6 +18,12 @@ import pcl
 import sensor_msgs.point_cloud2 as pc2
 from geometry_msgs.msg import Pose
 
+sys.path.append("/home/khushdeep/Desktop/ROS-tracker/catkin_ws/src:/opt/ros/melodic/share")
+import tf
+from tf2_ros import Buffer,TransformListener
+from tf2_msgs.msg import TFMessage
+from message_filters import Subscriber,TimeSynchronizer,ApproximateTimeSynchronizer
+
 from jsk_recognition_msgs.msg import BoundingBox, BoundingBoxArray
 
 from pcdet.datasets import DatasetTemplate
@@ -59,25 +65,24 @@ class SecondROS:
         rospy.init_node('second_ros')
 
         # Subscriber
-        # self.sub_lidar = rospy.Subscriber("/kitti/velo/pointcloud", PointCloud2, self.lidar_callback, queue_size=1)
-        self.sub_lidar = rospy.Subscriber("/zoe/velodyne_points", PointCloud2, self.lidar_callback, queue_size=1)
+        # self.sub_lidar = rospy.Subscriber("/zoe/velodyne_points", PointCloud2, self.lidar_callback, queue_size=1)
+        self.sub_lidar = Subscriber("/zoe/velodyne_points", PointCloud2)
+
+        # TODO : synchronize pointcloud and tf messages
+        # Issues: pointcloud has time header, however in tf does not have the same
+        # tf2_buffer = Buffer(cache_time=rospy.Duration(0.1))
+        # self.tf2_listener = tf.TransformListener(cache_time=rospy.Duration(0.1))
+        # print('Done tf2')
+        # # self.listener = tf.TransformListener()
+        # # self.listener = Subscriber("/tf", TFMessage)
+        # self.ats = ApproximateTimeSynchronizer([self.sub_lidar, self.tf2_listener], queue_size=10, slop=0.1) # Thats why this shows error
+        # self.ats.registerCallback(self.lidar_callback)
+        ##########
 
         # Publisher
         self.pub_bbox = rospy.Publisher("/detections", BoundingBoxArray, queue_size=1)
         # self.pub_det = rospy.Publisher("/detections", BoundingBoxArray, queue_size=1)
 
-        # Kitti data path
-        data_path = '/root/data/kitti'
-
-        # KITTI
-        # config_path = '/root/model/kitti/pipeline.config'
-        # ckpt_path = '/root/model/kitti/voxelnet-99040.tckpt'
-
-        # LGSVL
-        config_path = '/root/model/hybrid_v4/pipeline.config'
-        ckpt_path = '/root/model/hybrid_v4/voxelnet-817104.tckpt'
-
-        # self.model = SecondModel(data_path, config_path, ckpt_path)
         self.model = Detection()
         self.model.initialize()
 
@@ -85,6 +90,7 @@ class SecondROS:
     
     def lidar_callback(self, msg):
 
+        # (trans, rot) = self.listener.lookupTransform('zoe/world', 'zoe/velodyne', rospy.Time(0))
         intensity_fname = None
         intensity_dtype = None
         for field in msg.fields:
@@ -131,6 +137,8 @@ class SecondROS:
 
                 if int(lidar_boxes[0]['pred_labels'][i]) == 1:
                     arr_bbox.boxes.append(bbox)
+                    bbox.label = i
+                    bbox.value = i
 
             arr_bbox.header.frame_id = msg.header.frame_id
             arr_bbox.header.stamp = rospy.Time.now()

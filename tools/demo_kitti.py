@@ -46,6 +46,8 @@ class DemoDataset(DatasetTemplate):
     def __getitem__(self, index):
         if self.ext == '.bin':
             points = np.fromfile(self.sample_file_list[index], dtype=np.float32).reshape(-1, 4)
+            # points_nuscenes = np.fromfile(self.sample_file_list[index], dtype=np.float32).reshape(-1, 5)
+            # points = points_nuscenes[:,:-1]
         elif self.ext == '.npy':
             points = np.load(self.sample_file_list[index])
         else:
@@ -63,13 +65,13 @@ class DemoDataset(DatasetTemplate):
 def parse_config():
     parser = argparse.ArgumentParser(description='arg parser')
     # KITTI 
-    parser.add_argument('--cfg_file', type=str, default='cfgs/kitti_models/pointpillar.yaml',
+    parser.add_argument('--cfg_file', type=str, default='cfgs/kitti_models/pointrcnn.yaml',
                         help='specify the config for demo')
-    parser.add_argument('--data_path', type=str, default='/home/khushdeep/Desktop/OpenPCDet/data/kitti',
+    parser.add_argument('--data_path', type=str, default='/home/khushdeep/Desktop/zaafre/kitti/velodyne/0000',
                         help='specify the point cloud data file or directory')
     # parser.add_argument('--data_path', type=str, default='/home/khushdeep/Desktop/OpenPCDet/data/nuscenes/n008-2018-08-01-15-16-36-0400__LIDAR_TOP__1533151061697294.pcd.bin',
     #                     help='specify the point cloud data file or directory')
-    parser.add_argument('--ckpt', type=str, default='/home/khushdeep/Desktop/OpenPCDet/tools/ckpts/kitti/pointpillar_7728.pth', help='specify the pretrained model')
+    parser.add_argument('--ckpt', type=str, default='/home/khushdeep/Desktop/OpenPCDet/tools/ckpts/kitti/pointrcnn_7870.pth', help='specify the pretrained model')
     parser.add_argument('--ext', type=str, default='.bin', help='specify the extension of your point cloud data file')
 
     args = parser.parse_args()

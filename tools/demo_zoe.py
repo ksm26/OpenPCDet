@@ -53,6 +53,7 @@ class DemoDataset(DatasetTemplate):
             pcd = o3d.t.io.read_point_cloud(str(self.sample_file_list[index]))
             time = 0.0*np.expand_dims(np.ones(pcd.point["intensity"].shape[0]), axis=1)
             points = np.hstack((pcd.point["positions"].numpy(),pcd.point["intensity"].numpy(),time))
+            points[:, [1, 0]] = points[:, [0, 1]]
             # points = np.fromfile(self.sample_file_list[index], dtype=np.float32).reshape(-1, 5)
         elif self.ext == 'kitti':
             ply_point_cloud = o3d.data.PLYPointCloud()
@@ -91,8 +92,8 @@ def parse_config():
         args.ckpt = 'ckpts/nuscenes/cbgs_voxel0075_centerpoint_nds_6648.pth'
 
     elif args.ext =='kitti':
-        args.cfg_file = 'cfgs/zoe_models/pointpillar.yaml'
-        args.ckpt = '/home/khushdeep/Desktop/OpenPCDet/tools/ckpts/kitti/pointpillar_7728.pth'
+        args.cfg_file = 'cfgs/zoe_models/second.yaml'
+        args.ckpt = '/home/khushdeep/Desktop/OpenPCDet/tools/ckpts/kitti/second_7862.pth'
 
     cfg_from_yaml_file(args.cfg_file, cfg)
 
